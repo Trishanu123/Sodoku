@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sudoku Solver</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script>
+        async function solveSudoku() {
+            const board = [];
+            for (let i = 0; i < 9; i++) {
+                const row = [];
+                for (let j = 0; j < 9; j++) {
+                    const value = document.getElementById(`cell-${i}-${j}`).value;
+                    row.push(value === "" ? 0 : parseInt(value));
+                }
+                board.push(row);
+            }
+
+            const response = await fetch('/solve', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ board })
+            });
+
+            const result = await response.json();
+
+            if (result.solution) {
+                for (let i = 0; i < 9; i++) {
+                    for (let j = 0; j < 9; j++) {
+                        document.getElementById(`cell-${i}-${j}`).value = result.solution[i][j];
+                        document.getElementById(`cell-${i}-${j}`).classList.add('solved');
+                    }
+                }
+            } else {
+                alert(result.error);
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Sudoku Solver</h1>
+        <div class="grid">
+            {% for row in range(9) %}
+            {% for col in range(9) %}
+            <input 
+                type="text" 
+                maxlength="1" 
+                id="cell-{{ row }}-{{ col }}" 
+                class="cell {% if row % 3 == 2 and row != 8 %}bottom-border{% endif %} {% if col % 3 == 2 and col != 8 %}right-border{% endif %}">
+            {% endfor %}
+            {% endfor %}
+        </div>
+        <button onclick="solveSudoku()">Solve</button>
+    </div>
+</body>
+</html>
